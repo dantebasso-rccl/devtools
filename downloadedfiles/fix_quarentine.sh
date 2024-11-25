@@ -1,19 +1,12 @@
 #!/bin/bash
 
-directory=""
+input=""
 
-while getopts "in:" opt; do
-  case "$opt" in
-    in)
-      input="$OPTARG"
-      if [ -d "$input" ]; then
-        directory="$input"
-      elif [ -f "$input" ]; then
-        file="$input"
-      else
-        echo "The provided input is neither a valid directory nor a file."
-        exit 1
-      fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -in)
+      input="$2"
+      shift 2
       ;;
     *)
       echo "Usage: $0 -in <directory_or_file>"
@@ -22,12 +15,12 @@ while getopts "in:" opt; do
   esac
 done
 
-if [ -z "$directory" ] && [ -z "$file" ]; then
+if [ -z "$input" ]; then
   echo "You must specify a directory or a file with -in option."
   exit 1
 fi
 
-if [ -n "$directory" ]; then
+if [ -d "$input" ]; then
   process_directory() {
     for item in "$1"/*; do
       if [ -f "$item" ]; then
@@ -38,10 +31,13 @@ if [ -n "$directory" ]; then
       fi
     done
   }
-  process_directory "$directory"
+  process_directory "$input"
+elif [ -f "$input" ]; then
+  echo "Removing com.apple.quarantine from $input"
+  xattr -d com.apple.quarantine "$input"
 else
-  echo "Removing com.apple.quarantine from $file"
-  xattr -d com.apple.quarantine "$file"
+  echo "The provided input is neither a valid directory nor a file."
+  exit 1
 fi
 
 echo "Process completed."
