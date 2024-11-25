@@ -2,7 +2,7 @@
 
 ## Author: Dante Cesar Basso Filho
 ## Creation: 21/11/2024
-## Version: 0.1
+## Version: 0.2
 
 # Clear the screen
 clear
@@ -24,12 +24,12 @@ PIDS=()
 
 # Function to check if the user is authenticated with Kubernetes
 check_k8s_auth() {
-  # Check if the user can perform any operation, e.g., 'get nodes'
-  kubectl auth can-i get nodes > /dev/null 2>&1
+  # Use kubectl cluster-info to validate authentication and connectivity
+  kubectl cluster-info > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    return 0  # User is authenticated and has permissions
+    return 0  # User is authenticated and connected
   else
-    return 1  # User is not authenticated or lacks permissions
+    return 1  # User is not authenticated or not connected
   fi
 }
 
@@ -38,8 +38,11 @@ display_authentication_links() {
   echo "You are not authenticated with Kubernetes. Please authenticate first."
   echo "Visit one of the following links to authenticate:"
   echo "TST : https://portal.dkp2.tst.aws-digital.rccl.com/dkp/kommander/dashboard/"
-  echo "STG : https://portal.dkp2.tst.aws-digital.rccl.com/dkp/kommander/dashboard/"
-  echo "PRD : https://portal.dkp2.tst.aws-digital.rccl.com/dkp/kommander/dashboard/"
+  echo "STG : https://portal.dkp2.stg.aws-digital.rccl.com/dkp/kommander/dashboard/"
+  echo "PRD : https://portal.dkp2.prd.aws-digital.rccl.com/dkp/kommander/dashboard/"
+
+  echo ""
+  echo "After login, go to the right top, where is your name and them click on 'Generate Token'. Follow the steps and try again."
   exit 1
 }
 
@@ -61,7 +64,6 @@ display_authenticated_user() {
 check_k8s_auth
 
 # If authenticated, proceed, else show links to authenticate
-echo $? >> /dev/null
 if [ $? -eq 0 ]; then
   display_authenticated_user
 else
