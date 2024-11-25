@@ -2,19 +2,15 @@
 
 ## Author: Dante Cesar Basso Filho
 ## Creation: 21/11/2024
-## Version: 0.2
+## Version: 0.3
 
-# Clear the screen
 clear
-
-# Namespace variable
-NAMESPACE="construct"
 
 # Initial local port to start port-forwarding
 START_PORT=9090
 
-# List of specific services to port-forward
-SERVICES=("alpha-v1" "sir-v1" "capillary-v1")
+# List of specific services with namespaces
+SERVICES=("construct:alpha-v1" "construct:sir-v1" "construct:capillary-v1" "guest-accounts:accounts-v3")
 
 # Current local port to forward to the next service
 CURRENT_PORT=$START_PORT
@@ -22,33 +18,27 @@ CURRENT_PORT=$START_PORT
 # Array to store the PIDs of the port-forward processes
 PIDS=()
 
-# Function to check if the user is authenticated with Kubernetes
 check_k8s_auth() {
-  # Use kubectl cluster-info to validate authentication and connectivity
   kubectl cluster-info > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    return 0  # User is authenticated and connected
+    return 0
   else
-    return 1  # User is not authenticated or not connected
+    return 1
   fi
 }
 
-# Function to display authentication links
 display_authentication_links() {
   echo "You are not authenticated with Kubernetes. Please authenticate first."
   echo "Visit one of the following links to authenticate:"
   echo "TST : https://portal.dkp2.tst.aws-digital.rccl.com/dkp/kommander/dashboard/"
   echo "STG : https://portal.dkp2.stg.aws-digital.rccl.com/dkp/kommander/dashboard/"
   echo "PRD : https://portal.dkp2.prd.aws-digital.rccl.com/dkp/kommander/dashboard/"
-
   echo ""
-  echo "After login, go to the right top, where is your name and them click on 'Generate Token'. Follow the steps and try again."
+  echo "After login, go to the right top, where is your name and then click on 'Generate Token'. Follow the steps and try again."
   exit 1
 }
 
-# Function to display authenticated user's account and environment
 display_authenticated_user() {
-  # Get the current context and user info
   CONTEXT=$(kubectl config current-context)
   USER=$(kubectl config view --minify -o jsonpath='{.users[0].name}')
   CLUSTER=$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')
@@ -58,35 +48,46 @@ display_authenticated_user() {
   echo "User: $USER"
   echo "Cluster: $CLUSTER"
   echo "Proceeding with port-forward mapping..."
+  echo ""
 }
 
-# Check if the user is authenticated
 check_k8s_auth
 
-# If authenticated, proceed, else show links to authenticate
 if [ $? -eq 0 ]; then
   display_authenticated_user
 else
   display_authentication_links
 fi
 
-# Trap to handle script termination and cleanup
 trap 'echo "Cleaning up port-forward processes..."; kill "${PIDS[@]}"; exit 0' SIGINT SIGTERM
 
-# Loop through the predefined list of services and set up port-forwarding
-for SERVICE in "${SERVICES[@]}"; do
+for SERVICE_ENTRY in "${SERVICES[@]}"; do
+  # Split namespace and service name
+
+  IFS="::" read -r NAMESPACE SERVICE <<< "$SERVICE_ENTRY"
+
   # Get the exposed service port
-  SERVICE_PORT=$(kubectl get svc $SERVICE -n $NAMESPACE -o jsonpath='{.spec.ports[0].port}')
+  SERVICE_PORT=$(kubectl get svc "$SERVICE" -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].port}')
   
-  echo "Setting up port-forward for $SERVICE on local port $CURRENT_PORT (exposed port $SERVICE_PORT)..."
+  if [ -z "$SERVICE_PORT" ]; then
+    echo "Error: Unable to fetch port for $SERVICE in namespace $NAMESPACE."
+    continue
+  fi
+  
+  #echo "Setting up port-forward for $SERVICE on local port $CURRENT_PORT (exposed port $SERVICE_PORT, namespace $NAMESPACE)..."
+  #echo "  $SERVICE -> localhost:$CURRENT_PORT"
+  printf "  %-20s -> localhost:%d\n" "$SERVICE" "$CURRENT_PORT"
+
   
   # Set up port-forwarding in the background and capture the PID
-  kubectl port-forward svc/$SERVICE $CURRENT_PORT:$SERVICE_PORT -n $NAMESPACE &
-  PIDS+=($!)  # Add the PID to the array
+  kubectl port-forward svc/"$SERVICE" "$CURRENT_PORT":"$SERVICE_PORT" -n "$NAMESPACE" &
+  PIDS+=($!)
   
   # Increment the local port for the next service
   CURRENT_PORT=$((CURRENT_PORT + 1))
 done
 
+echo ""
 echo "Port-forwarding successfully configured for all services!"
-wait  # Wait for all background processes to finish
+echo ""
+wait
