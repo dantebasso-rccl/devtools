@@ -6,7 +6,9 @@ Some scripts can help all developers work.
 
 If you saw the error saying something like "this file can't be opened because it was downloaded from the internet" use (inside "downloadedfiles" folder":
 
-./fix_quarentine.sh -in ${FILE_OR_FOLDER_PATH}
+    ```
+    ./fix_quarentine.sh -in ${FILE_OR_FOLDER_PATH}
+    ```
 
 ## Kubernetes Proxy Orchestrator
 
@@ -29,11 +31,15 @@ If you saw the error saying something like "this file can't be opened because it
     ```
     alias proxyOrchestrator="cd ${PROJECT_FOLDER_REPLACE_HERE} && ./kubernetes_proxy_orchestrator.sh"
     ```
+    
 or:
+
     ```
     alias startProxyKubernetes="cd ${PROJECT_FOLDER_REPLACE_HERE} && ./kubernetes_proxy_orchestrator.sh"
     ```
+    
 or:
+
     ```
     alias startProxyConstruct="cd ${PROJECT_FOLDER_REPLACE_HERE} && ./kubernetes_proxy_construct.sh"
     ```
