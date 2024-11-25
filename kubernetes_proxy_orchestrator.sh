@@ -14,7 +14,7 @@ NAMESPACE="construct"
 START_PORT=9090
 
 # List of specific services to port-forward
-SERVICES=("alpha-v1" "sir-v1" "capillary-v1" "siebel-v1")
+SERVICES=("alpha-v1" "sir-v1" "capillary-v1")
 
 # Current local port to forward to the next service
 CURRENT_PORT=$START_PORT
