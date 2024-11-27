@@ -76,7 +76,7 @@ for SERVICE_ENTRY in "${SERVICES[@]}"; do
   fi
   
   #echo "Setting up port-forward for $SERVICE on local port $CURRENT_PORT (exposed port $SERVICE_PORT, namespace $NAMESPACE)..."
-  echo "DEBUG  port-forward svc/"$SERVICE" "$CURRENT_PORT":"$SERVICE_PORT" -n "$NAMESPACE""
+  #echo "DEBUG  port-forward svc/"$SERVICE" "$CURRENT_PORT":"$SERVICE_PORT" -n "$NAMESPACE""
 
   printf "  %-20s -> localhost:%d\n" "$SERVICE" "$CURRENT_PORT"
 
