@@ -67,7 +67,8 @@ for SERVICE_ENTRY in "${SERVICES[@]}"; do
   IFS="::" read -r NAMESPACE SERVICE <<< "$SERVICE_ENTRY"
 
   # Get the exposed service port
-  SERVICE_PORT=$(kubectl get svc "$SERVICE" -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].port}')
+  #SERVICE_PORT=$(kubectl get svc "$SERVICE" -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].port}')
+  SERVICE_PORT=80
   
   if [ -z "$SERVICE_PORT" ]; then
     echo "Error: Unable to fetch port for $SERVICE in namespace $NAMESPACE."
@@ -75,7 +76,8 @@ for SERVICE_ENTRY in "${SERVICES[@]}"; do
   fi
   
   #echo "Setting up port-forward for $SERVICE on local port $CURRENT_PORT (exposed port $SERVICE_PORT, namespace $NAMESPACE)..."
-  #echo "  $SERVICE -> localhost:$CURRENT_PORT"
+  echo "DEBUG  port-forward svc/"$SERVICE" "$CURRENT_PORT":"$SERVICE_PORT" -n "$NAMESPACE""
+
   printf "  %-20s -> localhost:%d\n" "$SERVICE" "$CURRENT_PORT"
 
   
